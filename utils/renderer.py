@@ -1,5 +1,5 @@
 import tensorflow as tf
-import utils.helpers
+import utils.helpers as helpers
 import math
 import numpy as np
 
@@ -107,3 +107,73 @@ class GGXRenderer:
         result = result * lampFactor
         result = result * tf.maximum(0.0, NdotL)
         return result
+
+
+    #Main rendering function, this is the computer graphics part, it generates an image from the parameter maps. For pure deep learning purposes the only important thing is that it is differentiable.
+    def tf_Render(self, svbrdf, wi, wo, currentConeTargetPos, tensorboard = "", multiLight = False, currentLightPos = None, lossRendering = True, isAmbient = False, useAugmentation = True):
+        wiNorm = helpers.tf_Normalize(wi)
+        woNorm = helpers.tf_Normalize(wo)
+
+        #Calculate how the image should look like with completely neutral lighting
+        result, NdotL = self.tf_calculateBRDF(svbrdf, wiNorm, woNorm, currentConeTargetPos, currentLightPos, multiLight)
+        resultShape = tf.shape(result)
+        lampIntensity = 1.5
+        
+        #Add lighting effects
+        if not currentConeTargetPos is None:
+            #If we want a cone light (to have a flash fall off effect)
+            currentConeTargetDir = currentLightPos - currentConeTargetPos #currentLightPos should never be None when currentConeTargetPos isn't
+            coneTargetNorm = helpers.tf_Normalize(currentConeTargetDir)
+            distanceToConeCenter = (tf.maximum(0.0, helpers.tf_DotProduct(wiNorm, coneTargetNorm)))
+        if not lossRendering:
+            #If we are not rendering for the loss
+            if not isAmbient:
+                if useAugmentation:
+                    #The augmentations will allow different light power and exposures                 
+                    stdDevWholeBatch = tf.exp(tf.random_normal((), mean = -2.0, stddev = 0.5))
+                    #add a normal distribution to the stddev so that sometimes in a minibatch all the images are consistant and sometimes crazy.
+                    lampIntensity = tf.abs(tf.random_normal((resultShape[0], resultShape[1], 1, 1, 1), mean = 10.0, stddev = stdDevWholeBatch)) # Creates a different lighting condition for each shot of the nbRenderings Check for over exposure in renderings
+                    #autoExposure
+                    autoExposure = tf.exp(tf.random_normal((), mean = np.log(1.5), stddev = 0.4))
+                    lampIntensity = lampIntensity * autoExposure
+                else:
+                    lampIntensity = tf.reshape(tf.constant(13.0), [1, 1, 1, 1, 1]) #Look at the renderings when not using augmentations
+            else:
+                #If this uses ambient lighting we use much small light values to not burn everything.
+                if useAugmentation:
+                    lampIntensity = tf.exp(tf.random_normal((resultShape[0], 1, 1, 1, 1), mean = tf.log(0.15), stddev = 0.5)) #No need to make it change for each rendering.
+                else:
+                    lampIntensity = tf.reshape(tf.constant(0.15), [1, 1, 1, 1, 1])
+            #Handle light white balance if we want to vary it..
+            if useAugmentation and not isAmbient:
+                whiteBalance = tf.abs(tf.random_normal([resultShape[0], resultShape[1], 1, 1, 3], mean = 1.0, stddev = 0.03))
+                lampIntensity = lampIntensity * whiteBalance
+
+            if multiLight:
+                lampIntensity = tf.expand_dims(lampIntensity, axis = 2) #add a constant dim if using multiLight
+        lampFactor = lampIntensity * math.pi
+
+        if not isAmbient:
+            if not lossRendering:
+                #Take into accound the light distance (and the quadratic reduction of power)            
+                lampDistance = tf.sqrt(tf.reduce_sum(tf.square(wi), axis = -1, keep_dims=True))
+
+                lampFactor = lampFactor * helpers.tf_lampAttenuation_pbr(lampDistance)
+            if not currentConeTargetPos is None:
+                #Change the exponent randomly to simulate multiple flash fall off.            
+                if useAugmentation:
+                    exponent = tf.exp(tf.random_normal((), mean=np.log(5), stddev=0.35))
+                else:
+                    exponent = 5.0
+                lampFactor = lampFactor * tf.pow(distanceToConeCenter, exponent)
+                print("using the distance to cone center")
+
+        result = result * lampFactor
+
+        result = result * tf.maximum(0.0, NdotL)
+        if multiLight:
+            result = tf.reduce_sum(result, axis = 2) * 1.0#if we have multiple light we need to multiply this by (1/number of lights).
+        if lossRendering:
+            result = result / tf.expand_dims(tf.maximum(wiNorm[:,:,:,:,2], 0.001), axis=-1)# This division is to compensate for the cosinus distribution of the intensity in the rendering.
+
+        return [result]#, D_rendered, G_rendered, F_rendered, diffuse_rendered, diffuse]

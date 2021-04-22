@@ -19,8 +19,8 @@ avi file: loaded by opencv, it should be a lenx1024x1024x3 video
 folder: scanned by glob for npy and avi files
 '''
 
-parser.add_argument('-input', dest='input', default='/home/F/v-wenye/exp/noiselevel_1', help='the input path')
-parser.add_argument('-output', dest='output', default='/home/F/v-wenye/exp/noiselevel_1', help='the folder to output svbrdf maps')
+parser.add_argument('-input', dest='input', default='/home/F/v-wenye/test_video/noiselevel_1/2_0.npy', help='the input path')
+parser.add_argument('-output', dest='output', default='/home/F/v-wenye/exp/test', help='the folder to output svbrdf maps')
 parser.add_argument('-gpuid', dest='gpuid', default='0', help='the value for CUDA_VISIBLE_DEVICES')
 
 parser.add_argument('-model_adjacent', dest='model_adjacent', default='/home/F/v-wenye/flow_model_final/adjacent_49_19.ckpt')
@@ -33,7 +33,7 @@ args = parser.parse_args()
 os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
 os.environ["CUDA_VISIBLE_DEVICES"] = args.gpuid
 
-os.makedirs(args.output), exist_ok=True)
+os.makedirs(args.output, exist_ok=True)
 
 bs = 1
 res0 = 256
@@ -45,7 +45,9 @@ f = 0.5 * res0 / np.tan(fov/2)
 c = 0.5 * res0
 intrinsic = np.array([[f,0,c],[0,f,c],[0,0,1]])
 
-path = './combine_flow.so'
+path = './utils/combine_flow.so'
+if not os.path.isfile(path):
+    os.system('g++ -std=c++11 -fPIC -shared -o ./utils/combine_flow.so ./utils/combine_flow.cpp')
 cbf = CDLL(path)
 cbf.combine_flow.argtypes = [POINTER(c_double), c_int, POINTER(c_int), POINTER(c_double)]
 cbf.combine_flow.restype = None
@@ -113,14 +115,14 @@ for f in files:
     if f.endswith('.npy'):
         video = np.load(f)
     elif f.endswith('.avi'):
-		cap = cv2.VideoCapture(f)
-		video = []
-		while True:
-			ret, frame = cap.read()
-			if not ret:
-				break
-			video.append(frame)
-		cap.release()
+        cap = cv2.VideoCapture(f)
+        video = []
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            video.append(frame)
+        cap.release()
     video = np.array(video)
 
     fms = len(video)
@@ -148,8 +150,8 @@ for f in files:
 
     for k in range(ns):
         if k == 0:
-            f, fs = sess.run([model.generator_output, model.generator_secondary_output], feed_dict={ph_input_images:((input_frames[k:(k+1)]/255)**2.2*2-1), ph_input_flows:np.zeros((1,res,res,2), np.float32)})
-            max_feature = f[0]
+            ft, fs = sess.run([model.generator_output, model.generator_secondary_output], feed_dict={ph_input_images:((input_frames[k:(k+1)]/255)**2.2*2-1), ph_input_flows:np.zeros((1,res,res,2), np.float32)})
+            max_feature = ft[0]
             max_feature_secondary = fs[0]
         else:
             input_flows = np.concatenate([downsampled_flow[np.newaxis,...], predicted_flows[((k-1)*fmstep):(k*fmstep)]], axis=0)
@@ -182,9 +184,9 @@ for f in files:
             adjusted_flow = full_flow + adjusting_flow
             downsampled_flow = downsample(flow2full(downsample(adjusted_flow / 4, 4), intrinsic) / 4, 4)
 
-            f, fs = sess.run([model.generator_output, model.generator_secondary_output], feed_dict={ph_input_images:((input_frames[k:(k+1)]/255)**2.2*2-1), ph_input_flows:adjusted_flow[np.newaxis,...], np.float32)})
-            max_feature = np.maximum(max_feature, f[0])
+            ft, fs = sess.run([model.generator_output, model.generator_secondary_output], feed_dict={ph_input_images:((input_frames[k:(k+1)]/255)**2.2*2-1), ph_input_flows:adjusted_flow[np.newaxis,...]})
+            max_feature = np.maximum(max_feature, ft[0])
             max_feature_secondary = np.maximum(max_feature_secondary, fs[0])
 
-    svbrdf_pred = sess.run(model.output, feed_dict={ph_input_feature:max_feature_predflow[np.newaxis,...], ph_input_feature_secondary:max_feature_secondary[np.newaxis,...]})
-    saveSVBRDF('{}/{}.png'.format(args.output, f.split('/')[-1][:-4])), svbrdf_pred)
+    svbrdf_pred = sess.run(model.output, feed_dict={ph_input_feature:max_feature[np.newaxis,...], ph_input_feature_secondary:max_feature_secondary[np.newaxis,...]})
+    saveSVBRDF('{}/{}.png'.format(args.output, f.split('/')[-1][:-4]), svbrdf_pred)

@@ -69,7 +69,9 @@ train_ids = np.random.choice(1195, 1000, replace=False)
 test_ids = np.array([i for i in range(1195) if not i in train_ids])
 svbrdf_inria_path = os.path.join(datadir, 'InriaSVBRDF_npy/train')
 
-path = './cal_flow_single.so'
+path = './utils/cal_flow_single.so'
+if not os.path.isfile(path):
+    os.system('g++ -std=c++11 -fPIC -shared -o ./utils/cal_flow_single.so ./utils/cal_flow_single.cpp')
 cal_flow_single = CDLL(path)
 cal_flow_single.calculate_flow.argtypes = [POINTER(c_float), c_double, c_int, c_int, POINTER(c_float)]
 cal_flow_single.calculate_flow.restype = None
@@ -80,6 +82,7 @@ res = 256
 class Trainer(object):
     def __init__(self, args):
         self.args = args
+        self.logdir = '/home/D/v-wenye/exp/corr_flow/' + self.args.experiment_name
         if not self.args.resume is None:
             np.random.seed(int(time.time()))
 
@@ -89,8 +92,6 @@ class Trainer(object):
         self.sess = tf.Session(config=config)
         self._build_graph()
         self.vg = Video_Generator(256)
-
-        self.logdir = '/home/D/v-wenye/exp/corr_flow/' + self.args.experiment_name
 
     def _build_graph(self):
         # Input images and ground truth optical flow definition
@@ -163,8 +164,8 @@ class Trainer(object):
             
     def train(self):
 
-        if not os.path.exists(f'./{self.logdir}/model'):
-            os.mkdir(f'./{self.logdir}/model')
+        if not os.path.exists(f'{self.logdir}/model'):
+            os.mkdir(f'{self.logdir}/model')
 
         video_perm = np.array([], int)
         for i in range(self.args.num_epochs):
@@ -175,6 +176,7 @@ class Trainer(object):
         for e in range(self.args.num_epochs):
             # Training
             for i in range(1000//mixfactor):
+                print('starting {}_{}'.format(e,i))
                 dataset_input_frames = np.zeros((140*mixfactor,2,256,256,3), np.uint8)
                 dataset_input_flows = np.zeros((140*mixfactor,256,256,2), np.float32)
                 dataset_valid_areas = np.zeros((140*mixfactor,2), np.int32)
@@ -245,9 +247,9 @@ class Trainer(object):
                         if e == 0 and i == 0:
                             prev_model = self.args.resume
                         elif i == 0:
-                            prev_model = f'./{self.logdir}/model/model_{e-1}_{1000//mixfactor-1}.ckpt'
+                            prev_model = f'{self.logdir}/model/model_{e-1}_{1000//mixfactor-1}.ckpt'
                         else:
-                            prev_model = f'./{self.logdir}/model/model_{e}_{i-1}.ckpt'
+                            prev_model = f'{self.logdir}/model/model_{e}_{i-1}.ckpt'
                         self.saver.restore(self.sess, prev_model)
                         print('{},resumed from nan'.format(time.asctime(time.localtime(time.time()))))
 
@@ -260,7 +262,7 @@ class Trainer(object):
                         flow_gt = flows_gt[0]
                         images_v = images[0]
                         vis_flow_pyramid(flow_set, flow_gt, images_v,
-                                         f'./{self.logdir}/figure/nan_flow_{e}_{i}_{k}.pdf')
+                                         f'{self.logdir}/figure/nan_flow_{e}_{i}_{k}.pdf')
                     else:
                         lss += ls
 
@@ -271,8 +273,8 @@ class Trainer(object):
                         self.twriter.add_summary(summary, g_step)
 
                         # visualize estimated optical flow
-                        if not os.path.exists(f'./{self.logdir}/figure'):
-                            os.mkdir(f'./{self.logdir}/figure')
+                        if not os.path.exists(f'{self.logdir}/figure'):
+                            os.mkdir(f'{self.logdir}/figure')
                         # Estimated flow values are downscaled, rescale them compatible to the ground truth
                         flow_set = []
                         flows_val = self.sess.run(self.flows, feed_dict = {self.images: images,
@@ -283,11 +285,11 @@ class Trainer(object):
                         flow_gt = flows_gt[0]
                         images_v = images[0]
                         vis_flow_pyramid(flow_set, flow_gt, images_v,
-                                         f'./{self.logdir}/figure/flow_{e}_{i}_{k}.pdf')
+                                         f'{self.logdir}/figure/flow_{e}_{i}_{k}.pdf')
 
 
                 print('{},{}/{}, loss: {}'.format(time.asctime(time.localtime(time.time())), e*1000//mixfactor+i, self.args.num_epochs*1000/mixfactor, lss/(140*mixfactor)))
-                self.saver.save(self.sess, f'./{self.logdir}/model/model_{e}_{i}.ckpt')
+                self.saver.save(self.sess, f'{self.logdir}/model/model_{e}_{i}.ckpt')
             
         self.twriter.close()
         self.vwriter.close()

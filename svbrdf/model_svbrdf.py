@@ -3,7 +3,7 @@
 import tensorflow as tf
 import numpy as np
 import svbrdf.module_svbrdf as tfHelpers
-import utils.helpers
+import utils.helpers as helpers
 from utils.warp_const import dense_image_warp as warp_const
 
 #Define the the model class, this contains our network definition. Quite similar to the first project.

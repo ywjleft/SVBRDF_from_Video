@@ -63,6 +63,24 @@ def addNoise(renderings):
     noise = tf.random_normal(shape, mean=0.0, stddev=stddevNoise)
     return renderings + noise
 
+#Generate a random direction on the upper hemisphere with gaps on the top and bottom of Hemisphere. Equation is described in the Global Illumination Compendium (19a)
+def tf_generate_normalized_random_direction(batchSize, nbRenderings, lowEps = 0.001, highEps = 0.05):
+    r1 = tf.random_uniform([batchSize, nbRenderings, 1], 0.0 + lowEps, 1.0 - highEps, dtype=tf.float32)
+    r2 =  tf.random_uniform([batchSize, nbRenderings, 1], 0.0, 1.0, dtype=tf.float32)
+    r = tf.sqrt(r1)
+    phi = 2 * math.pi * r2
+    #min alpha = atan(sqrt(1-r^2)/r)
+    x = r * tf.cos(phi)
+    y = r * tf.sin(phi)
+    z = tf.sqrt(1.0 - tf.square(r))
+    finalVec = tf.concat([x, y, z], axis=-1) #Dimension here should be [batchSize,nbRenderings, 3]
+    return finalVec
+    
+#Generate a distance to compute for the specular renderings (as position is important for this kind of renderings)
+def tf_generate_distance(batchSize, nbRenderings):
+    gaussian = tf.random_normal([batchSize, nbRenderings, 1], 0.5, 0.75, dtype=tf.float32) # parameters chosen empirically to have a nice distance from a -1;1 surface.
+    return (tf.exp(gaussian))
+    
 #generate the diffuse rendering for the loss computation
 def tf_generateDiffuseRendering(batchSize, nbRenderings, targets, outputs, renderer):
     currentViewPos = tf_generate_normalized_random_direction(batchSize, nbRenderings, lowEps = 0.001, highEps = 0.1)

@@ -1,6 +1,6 @@
 import tensorflow as tf
-import utils.renderer
-import utils.helpers
+import utils.renderer as renderer
+import utils.helpers as helpers
 
 
 def DX(x):

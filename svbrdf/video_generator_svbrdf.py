@@ -74,7 +74,7 @@ class Video_Generator:
         intensity = 0.1 * (cameraDist / 0.28) ** 2
         lf = [intensity, intensity, intensity, np.exp(np.random.normal(1.6, 0.35))]
 
-        sess.run([self.assigner_fov, self.assigner_svbrdf, self.assigner_lightfactor]
+        sess.run([self.assigner_fov, self.assigner_svbrdf, self.assigner_lightfactor], 
             feed_dict={self.ph_fov:fov, self.ph_svbrdf:svbrdf, self.ph_lightfactor:lf})
 
         video = np.zeros((len(camera_params), self.res, self.res, 3), np.uint8)

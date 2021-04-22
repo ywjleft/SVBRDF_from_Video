@@ -21,9 +21,9 @@ datadir = '/home/E/v-wenye/corr_data' # the path containing training data
 os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
 os.environ["CUDA_VISIBLE_DEVICES"] = args.gpuid
 
-path = './cal_flow_svbrdf_v4.so'
+path = './utils/cal_flow_svbrdf_v4.so'
 if not os.path.isfile(path):
-    os.system('g++ -std=c++11 -fPIC -shared -o cal_flow_svbrdf_v4.so cal_flow_svbrdf_v4.cpp')
+    os.system('g++ -std=c++11 -fPIC -shared -o ./utils/cal_flow_svbrdf_v4.so ./utils/cal_flow_svbrdf_v4.cpp')
 cal_flow_svbrdf = CDLL(path)
 cal_flow_svbrdf.calculate_flow.argtypes = [POINTER(c_float), POINTER(c_int), c_double, POINTER(c_float)]
 cal_flow_svbrdf.calculate_flow.restype = None
