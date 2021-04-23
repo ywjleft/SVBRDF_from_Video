@@ -16,7 +16,7 @@ parser.add_argument('-gpuid', dest='gpuid', default='0', help='the value for CUD
 args = parser.parse_args()
 
 tempdir = '/ramdisk/'
-datadir = '/home/E/v-wenye/corr_data' # the path containing training data
+datadir = '/path-to-training-data' # the path containing training data
 
 os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
 os.environ["CUDA_VISIBLE_DEVICES"] = args.gpuid
@@ -29,7 +29,7 @@ cal_flow_svbrdf.calculate_flow.argtypes = [POINTER(c_float), POINTER(c_int), c_d
 cal_flow_svbrdf.calculate_flow.restype = None
 
 svbrdf_adobe_path = os.path.join(datadir, 'AdobeStockSVBRDF_npy/valid')
-np.random.seed(123) # keep this seed if you want to get the same training / test split with the author
+np.random.seed(123) # Since Adobe data originally does not have train/test separation, we use this seed to separate. 
 train_ids = np.random.choice(1195, 1000, replace=False)
 test_ids = np.array([i for i in range(1195) if not i in train_ids])
 svbrdf_inria_path = os.path.join(datadir, 'InriaSVBRDF_npy/train')

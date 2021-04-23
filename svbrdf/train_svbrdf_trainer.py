@@ -11,7 +11,7 @@ parser.add_argument('-epochs', dest='epochs', type=int, default=50, help='number
 parser.add_argument('-loadModel', dest='loadModel', default=None, help='if you want to load a model and continue the training, input the path to the model here')
 parser.add_argument('-startEpoch', dest='startEpoch',  type=int, default=0, help='the number of the first epoch, it only affects output')
 parser.add_argument('-gpuid', dest='gpuid', default='0', help='the value for CUDA_VISIBLE_DEVICES')
-parser.add_argument('-experiment_name', dest='experiment_name', default='test')
+parser.add_argument('-experiment_name', dest='experiment_name', default='train_svbrdf_')
 
 args = parser.parse_args()
 
@@ -19,7 +19,7 @@ tempdir = '/ramdisk/'
 # the trainer runs cooperatively with the loader, and exchange data through a ramdisk specified here
 # Mount the path to physical memory greatly improves training speed, e.g., "mount -t tmpfs -o size=30G tmpfs /ramdisk" 
 
-outputdir = '/home/D/v-wenye/exp/corr_svbrdf/' + args.experiment_name # the path to output results and logs
+outputdir = '/parent-directory-to-output/' + args.experiment_name # the path to output results and logs
 
 os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
 os.environ["CUDA_VISIBLE_DEVICES"] = args.gpuid

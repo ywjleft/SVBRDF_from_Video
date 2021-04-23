@@ -19,13 +19,13 @@ avi file: loaded by opencv, it should be a lenx1024x1024x3 video
 folder: scanned by glob for npy and avi files
 '''
 
-parser.add_argument('-input', dest='input', default='/home/F/v-wenye/test_video/noiselevel_1/2_0.npy', help='the input path')
-parser.add_argument('-output', dest='output', default='/home/F/v-wenye/exp/test', help='the folder to output svbrdf maps')
+parser.add_argument('-input', dest='input', default='./example_test_data/1k.npy', help='the input path')
+parser.add_argument('-output', dest='output', default='./output', help='the folder to output svbrdf maps')
 parser.add_argument('-gpuid', dest='gpuid', default='0', help='the value for CUDA_VISIBLE_DEVICES')
 
-parser.add_argument('-model_adjacent', dest='model_adjacent', default='/home/F/v-wenye/flow_model_final/adjacent_49_19.ckpt')
-parser.add_argument('-model_refinement', dest='model_refinement', default='/home/F/v-wenye/flow_model_final/distant_49_19.ckpt')
-parser.add_argument('-model_svbrdf', dest='model_svbrdf', default='/home/D/v-wenye/exp/corr_svbrdf/v7p_norottrans_further/51_9.ckpt')
+parser.add_argument('-model_adjacent', dest='model_adjacent', default='./trained_models/adjacent.ckpt')
+parser.add_argument('-model_refinement', dest='model_refinement', default='./trained_models/distant.ckpt')
+parser.add_argument('-model_svbrdf', dest='model_svbrdf', default='./trained_models/svbrdf.ckpt')
 
 
 args = parser.parse_args()

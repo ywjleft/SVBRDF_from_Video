@@ -19,15 +19,15 @@ The first frame position can be specified in the following two ways:
 - A string with the format y0,y1,x0,x1
 '''
 
-parser.add_argument('-input_video', dest='input_video', default='/home/D/v-wenye/svbrdfvideo/npy1k_7/9.npy')
-parser.add_argument('-input_guidance', dest='input_guidance', default='/home/D/v-wenye/svbrdfvideo/npy1k_7/9.png')
+parser.add_argument('-input_video', dest='input_video', default='./example_test_data/bigmap.npy')
+parser.add_argument('-input_guidance', dest='input_guidance', default='/example_test_data/bigmap.png')
 parser.add_argument('-input_position', dest='input_position', default='96,761,1910,2575', help='the position of the first video frame in the guidance photo')
 parser.add_argument('-output', dest='output', default='/home/F/v-wenye/exp/test', help='the folder to output svbrdf maps')
 parser.add_argument('-gpuid', dest='gpuid', default='0', help='the value for CUDA_VISIBLE_DEVICES')
 
-parser.add_argument('-model_adjacent', dest='model_adjacent', default='/home/F/v-wenye/flow_model_final/adjacent_49_19.ckpt')
-parser.add_argument('-model_refinement', dest='model_refinement', default='/home/F/v-wenye/flow_model_final/distant_49_19.ckpt')
-parser.add_argument('-model_svbrdf', dest='model_svbrdf', default='/home/D/v-wenye/exp/corr_svbrdf/v7p_norottrans_further/51_9.ckpt')
+parser.add_argument('-model_adjacent', dest='model_adjacent', default='./trained_models/adjacent.ckpt')
+parser.add_argument('-model_refinement', dest='model_refinement', default='./trained_models/distant.ckpt')
+parser.add_argument('-model_svbrdf', dest='model_svbrdf', default='./trained_models/svbrdf.ckpt')
 
 args = parser.parse_args()
 
