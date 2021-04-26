@@ -16,7 +16,7 @@ parser.add_argument('-gpuid', dest='gpuid', default='0', help='the value for CUD
 args = parser.parse_args()
 
 tempdir = '/ramdisk/'
-datadir = '/path-to-training-data' # the path containing training data
+datadir = './data' # the path containing training data
 
 os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
 os.environ["CUDA_VISIBLE_DEVICES"] = args.gpuid

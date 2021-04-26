@@ -20,9 +20,10 @@ The first frame position can be specified in the following two ways:
 '''
 
 parser.add_argument('-input_video', dest='input_video', default='./example_test_data/bigmap.npy')
-parser.add_argument('-input_guidance', dest='input_guidance', default='/example_test_data/bigmap.png')
-parser.add_argument('-input_position', dest='input_position', default='96,761,1910,2575', help='the position of the first video frame in the guidance photo')
-parser.add_argument('-output', dest='output', default='/home/F/v-wenye/exp/test', help='the folder to output svbrdf maps')
+parser.add_argument('-input_guidance', dest='input_guidance', default='./example_test_data/bigmap.png')
+parser.add_argument('-input_position', dest='input_position', default='./example_test_data/bigmap_startpos.npy', help='the position of the first video frame in the guidance photo')
+#parser.add_argument('-input_position', dest='input_position', default='96,761,1910,2575', help='the position of the first video frame in the guidance photo')
+parser.add_argument('-output', dest='output', default='./output', help='the folder to output svbrdf maps')
 parser.add_argument('-gpuid', dest='gpuid', default='0', help='the value for CUDA_VISIBLE_DEVICES')
 
 parser.add_argument('-model_adjacent', dest='model_adjacent', default='./trained_models/adjacent.ckpt')

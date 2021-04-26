@@ -19,7 +19,7 @@ tempdir = '/ramdisk/'
 # the trainer runs cooperatively with the loader, and exchange data through a ramdisk specified here
 # Mount the path to physical memory greatly improves training speed, e.g., "mount -t tmpfs -o size=30G tmpfs /ramdisk" 
 
-outputdir = '/parent-directory-to-output/' + args.experiment_name # the path to output results and logs
+outputdir = './output/' + args.experiment_name # the path to output results and logs
 
 os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
 os.environ["CUDA_VISIBLE_DEVICES"] = args.gpuid

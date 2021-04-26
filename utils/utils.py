@@ -14,6 +14,18 @@ def warp_feature_guide(img, flow, h, w, y0, x0, borderValue=-3.402823e38):
     result = cv2.remap(img, remapflow, None, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=[borderValue,]*4)
     return result
 
+def warp_flow(img, flow, inverse=False):
+    h, w = flow.shape[:2]
+    remapflow = np.zeros_like(flow)
+    if inverse:
+        remapflow[:,:,0] = flow[:,:,0] + np.arange(w)
+        remapflow[:,:,1] = flow[:,:,1] + np.arange(h)[:,np.newaxis]
+    else:
+        remapflow[:,:,0] = -flow[:,:,0] + np.arange(w)
+        remapflow[:,:,1] = -flow[:,:,1] + np.arange(h)[:,np.newaxis]
+    result = cv2.remap(img, remapflow, None, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+    return result
+    
 def warp_flow_bv(img, flow, borderValue=-3.402823e38):
     h, w = flow.shape[:2]
     remapflow = np.zeros_like(flow.astype(np.float32))

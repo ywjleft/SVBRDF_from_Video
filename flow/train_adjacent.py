@@ -16,7 +16,7 @@ parser.add_argument('-e', '--num_epochs', type = int, default = 50,
                     help = '# of epochs [50]')
 parser.add_argument('-b', '--batch_size', type = int, default = 4,
                     help = 'Batch size [4]')
-parser.add_argument('-r', '--resume', type = str, default = "/path-to-pretrained-flyingchairs-model/model_100epochs_ft_Chairs/model_50.ckpt",
+parser.add_argument('-r', '--resume', type = str, default = "./trained_models/flyingchairs_50.ckpt",
                     help = 'Learned parameter checkpoint file')
 parser.add_argument('-gpuid', default='0')
 parser.add_argument('-experiment_name', dest='experiment_name', default='train_adherent_')
@@ -62,7 +62,7 @@ for key, item in vars(args).items():
 os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpuid
 
-datadir = '/path-to-training-data'
+datadir = './data'
 svbrdf_adobe_path = os.path.join(datadir, 'AdobeStockSVBRDF_npy/valid')
 np.random.seed(123)
 train_ids = np.random.choice(1195, 1000, replace=False)
@@ -82,7 +82,7 @@ mixfactor = 50
 class Trainer(object):
     def __init__(self, args):
         self.args = args
-        self.logdir = '/parent-directory-to-output/' + self.args.experiment_name
+        self.logdir = './output/' + self.args.experiment_name
         if not self.args.resume is None:
             np.random.seed(int(time.time()))
 
