@@ -10,9 +10,15 @@ More information (including a copy of the paper) can be found at http://msraig.i
 If you use our code or models, please cite:
 
 ```
-@article{
-    
- }
+@article{https://doi.org/10.1111/cgf.14387,
+author = {Ye, Wenjie and Dong, Yue and Peers, Pieter and Guo, Baining},
+title = {Deep Reflectance Scanning: Recovering Spatially-varying Material Appearance from a Flash-lit Video Sequence},
+journal = {Computer Graphics Forum},
+volume = {40},
+number = {6},
+pages = {409-427},
+year = {2021}
+}
 ```
 
 ----------------------------------------------------------------
