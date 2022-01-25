@@ -4,7 +4,7 @@
 
 This repository provides a reference implementation for the CGF paper "Deep Reflectance Scanning: Recovering Spatially-varying Material Appearance from a Flash-lit Video Sequence".
 
-More information (including a copy of the paper) can be found at http://msraig.info/~VideoSVBRDF/VideoSVBRDF.htm.
+More information (including a copy of the paper) can be found at http://share.msraig.info/DeepRefScan/DeepRefScan.htm.
 
 ## Citation
 If you use our code or models, please cite:
